@@ -29,7 +29,10 @@ class BarnameMaliApp : Application() {
         notifier = Notifier(this).also { it.createChannels() }
         repository = Repository(database, Settings(this), notifier)
         backup = Backup(database)
-        appScope.launch { repository.seedDefaults() }
+        appScope.launch {
+            repository.seedDefaults()
+            repository.recheckPendingSms()
+        }
         ReminderWorker.schedule(this)
     }
 }

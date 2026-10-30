@@ -114,7 +114,7 @@ class SmsParserTest {
 
     @Test
     fun monthFromLastYear() {
-        val p = SmsParser.parse("برداشت 100,000\n12/25 10:00", JalaliDate(1405, 1, 3))!!
+        val p = SmsParser.parse("حساب ***1234\nبرداشت 100,000\n12/25 10:00", JalaliDate(1405, 1, 3))!!
         assertEquals(JalaliDate(1404, 12, 25), p.date)
     }
 
@@ -122,6 +122,40 @@ class SmsParserTest {
     fun ignoresOtpAndAds() {
         assertNull(SmsParser.parse("رمز پویا خرید: 482913 مبلغ: 500,000 ریال بانک ملت", today))
         assertNull(SmsParser.parse("جشنواره پاییزی! با خرید از فروشگاه ما تخفیف بگیرید", today))
+    }
+
+    @Test
+    fun ignoresNonBankMessagesWithNumbers() {
+        val notBank = listOf(
+            "شارژ 50,000 ریالی شما با موفقیت انجام شد. موجودی: 120,000 ریال. ایرانسل",
+            "مشترک گرامی، بسته اینترنت 10 گیگابایت با مبلغ 150,000 تومان فعال شد",
+            "سفارش شما به مبلغ 1,250,000 تومان پرداخت شد. کد رهگیری 123456789",
+            "سلام، 500 تومن برام کارت به کارت کن فردا میدم",
+            "قبض برق شما به مبلغ 320,000 ریال صادر شد. شناسه پرداخت 1234567890123",
+            "مبلغ 2,000,000 تومان جایزه نقدی! برای ثبت نام عدد 1 را ارسال کنید",
+            "پرداخت 85,000 تومان در اسنپ انجام شد",
+        )
+        for (text in notBank) assertNull(SmsParser.parse(text, today), text)
+    }
+
+    @Test
+    fun readsCommonBankFormats() {
+        val pasargad = SmsParser.parse("-1,200,000\nاز 220.8000.1234567.1\n1405/08/08_10:20\nمانده: 3,400,000", today)!!
+        assertEquals(Direction.DEBIT, pasargad.direction)
+        assertEquals(1_200_000, pasargad.amountRial)
+        assertEquals(3_400_000, pasargad.balanceRial)
+
+        val sepah = SmsParser.parse("بانک سپه\nبرداشت: 750,000\nح: 1234\nمانده: 9,000,000\n1405/08/07", today)!!
+        assertEquals(750_000, sepah.amountRial)
+        assertEquals("1234", sepah.accountDigits)
+
+        val keshavarzi = SmsParser.parse("بانک کشاورزی\nخرید\nمبلغ:450,000-\nحساب:...5566\nمانده:2،300،000\n0807-21:05", today)!!
+        assertEquals(Direction.DEBIT, keshavarzi.direction)
+        assertEquals(450_000, keshavarzi.amountRial)
+        assertEquals(2_300_000, keshavarzi.balanceRial)
+
+        val billByBank = SmsParser.parse("بانک ملت\nپرداخت قبض\nحساب 4521***\nبرداشت: 320,000\nمانده: 1,000,000", today)!!
+        assertEquals(320_000, billByBank.amountRial)
     }
 }
 
