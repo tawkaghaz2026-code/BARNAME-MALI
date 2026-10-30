@@ -299,3 +299,16 @@ fun daysLabel(epochDay: Long, today: Long): String {
 }
 
 fun unitOf(u: MoneyUnit) = Money.unitLabel(u)
+
+/** Scaffold for screens shown inside the main scaffold, which already applies the system bar insets. */
+@Composable
+fun SubScaffold(
+    topBar: @Composable () -> Unit = {},
+    snackbarHost: @Composable () -> Unit = {},
+    content: @Composable (androidx.compose.foundation.layout.PaddingValues) -> Unit,
+) = androidx.compose.material3.Scaffold(
+    topBar = topBar,
+    snackbarHost = snackbarHost,
+    contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
+    content = content,
+)

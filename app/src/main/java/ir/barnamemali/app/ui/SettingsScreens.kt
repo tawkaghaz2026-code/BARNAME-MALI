@@ -21,7 +21,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -89,7 +88,7 @@ fun SettingsScreen(nav: NavHostController) {
         }
     }
 
-    Scaffold(topBar = { BackBar("تنظیمات", nav) }) { padding ->
+    SubScaffold(topBar = { BackBar("تنظیمات", nav) }) { padding ->
         LazyColumn(Modifier.padding(padding).padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             item {
                 SectionCard {
@@ -190,7 +189,7 @@ fun AdjustmentsScreen(nav: NavHostController) {
     val list by r.dao.adjustments().collectAsStateWithLifecycle(emptyList())
     val accounts by r.dao.accountsWithBalance().collectAsStateWithLifecycle(emptyList())
     val accNames = accounts.associate { it.account.id to it.account.name }
-    Scaffold(topBar = { BackBar("اصلاح‌های خودکار مانده", nav) }) { padding ->
+    SubScaffold(topBar = { BackBar("اصلاح‌های خودکار مانده", nav) }) { padding ->
         LazyColumn(Modifier.padding(padding).padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             item {
                 Hint("هر بار مانده پیامک بانک با مانده برنامه فرق داشت و علتش پیدا نشد، این‌جا یک اصلاح ثبت می‌شود تا مانده‌ها یکی شوند. می‌توانید برای هر کدام دسته و توضیح بگذارید یا حذفش کنید.")
@@ -225,7 +224,7 @@ fun RecurringScreen(nav: NavHostController) {
     var paying by remember { mutableStateOf<Recurring?>(null) }
     val today = Times.todayEpochDay()
 
-    Scaffold(topBar = {
+    SubScaffold(topBar = {
         BackBar("پرداخت‌های تکراری", nav) {
             TextButton(onClick = { editing = Recurring(title = "", amount = 0, nextDueEpochDay = today) }) { Text("+ جدید") }
         }
@@ -318,7 +317,7 @@ fun CategoriesScreen(nav: NavHostController) {
     val r = repo()
     val cats by r.dao.categories().collectAsStateWithLifecycle(emptyList())
     var editing by remember { mutableStateOf<Category?>(null) }
-    Scaffold(topBar = {
+    SubScaffold(topBar = {
         BackBar("دسته‌ها", nav) { TextButton(onClick = { editing = Category(name = "", sortOrder = cats.size) }) { Text("+ جدید") } }
     }) { padding ->
         LazyColumn(Modifier.padding(padding).padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {

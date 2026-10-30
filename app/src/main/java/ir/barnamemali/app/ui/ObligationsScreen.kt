@@ -19,7 +19,6 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -343,7 +342,7 @@ fun PersonScreen(nav: NavHostController, personId: Long) {
     var confirmDelete by remember { mutableStateOf(false) }
     val unit by r.settings.unit.collectAsStateCompat()
 
-    Scaffold(topBar = { BackBar(p?.person?.name ?: "", nav) }) { padding ->
+    SubScaffold(topBar = { BackBar(p?.person?.name ?: "", nav) }) { padding ->
         LazyColumn(Modifier.padding(padding).padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             if (p != null) item {
                 SectionCard {
@@ -447,7 +446,7 @@ fun LoanScreen(nav: NavHostController, loanId: Long) {
     var confirmDelete by remember { mutableStateOf(false) }
     val today = Times.todayEpochDay()
 
-    Scaffold(topBar = { BackBar(loan?.title ?: "", nav) { TextButton(onClick = { confirmDelete = true }) { Text("حذف", color = Danger) } } }) { padding ->
+    SubScaffold(topBar = { BackBar(loan?.title ?: "", nav) { TextButton(onClick = { confirmDelete = true }) { Text("حذف", color = Danger) } } }) { padding ->
         LazyColumn(Modifier.padding(padding).padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             if (loan != null) item {
                 SectionCard {

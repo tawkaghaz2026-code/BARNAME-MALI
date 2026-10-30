@@ -25,7 +25,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -190,8 +189,9 @@ fun AddTxnScreen(nav: NavHostController, id: Long) {
     }
     val editingSpecial = existing?.let { it.kind != TxnKind.EXPENSE && it.kind != TxnKind.INCOME } == true
 
-    Scaffold(topBar = {
+    SubScaffold(topBar = {
         TopAppBar(
+            windowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
             title = { Text(if (id > 0) "ویرایش تراکنش" else "ثبت تراکنش") },
             navigationIcon = { IconButton(onClick = { nav.popBackStack() }) { Icon(Icons.Default.ArrowBack, "بازگشت") } },
             actions = {

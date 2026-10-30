@@ -30,7 +30,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -69,6 +68,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun BackBar(title: String, nav: NavHostController, actions: @Composable () -> Unit = {}) {
     TopAppBar(
+        windowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
         title = { Text(title) },
         navigationIcon = { IconButton(onClick = { nav.popBackStack() }) { Icon(Icons.Default.ArrowBack, "بازگشت") } },
         actions = { actions() },
@@ -86,7 +86,7 @@ fun SmsReviewScreen(nav: NavHostController) {
     val members by r.dao.members().collectAsStateWithLifecycle(emptyList())
     val ready = pending.count { it.accountId != null && it.amount != 0L }
 
-    Scaffold(
+    SubScaffold(
         topBar = {
             BackBar("پیامک‌های بانکی", nav) {
                 if (ready > 1) TextButton(onClick = {
@@ -232,7 +232,7 @@ fun AccountsScreen(nav: NavHostController) {
         if (granted.values.all { it }) showImport = true
     }
 
-    Scaffold(
+    SubScaffold(
         topBar = {
             BackBar("حساب‌ها", nav) {
                 IconButton(onClick = { editing = Account(name = "", balanceKnown = true) }) { Icon(Icons.Default.Add, "حساب جدید") }
