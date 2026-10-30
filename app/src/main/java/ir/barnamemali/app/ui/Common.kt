@@ -60,6 +60,7 @@ import ir.barnamemali.core.Money
 import ir.barnamemali.core.MoneyUnit
 import ir.barnamemali.core.PersianText
 import ir.barnamemali.app.R
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.material3.Typography
