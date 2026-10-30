@@ -1,0 +1,8 @@
+<resources>
+    <style name="Theme.BarnameMali" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">#F4F6F3</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:navigationBarColor">#FFFFFF</item>
+        <item name="android:windowBackground">@color/background</item>
+    </style>
+</resources>
