@@ -47,6 +47,13 @@ object SmsParser {
     private val timeRegex = Regex("(?<!\\d)(\\d{1,2}):(\\d{2})(?!\\d)")
     private val otpRegex = Regex("رمز ?پویا|رمز ?دوم|رمز ?یکبار|کد ?تا[ئیٔ]?ید|رمز ?عبور|OTP", RegexOption.IGNORE_CASE)
     private val accountWordsInGap = Regex("حساب|کارت|سپرده|شماره|شبا")
+    private val arabicCommaInNumber = Regex("(?<=\\d)[،٫](?=\\d{3}(?!\\d))")
+    // Ads, shops and mobile operators also write "خرید" or "شارژ" next to a number; bank transaction SMS never
+    // carry these words without also naming the account.
+    private val notBankRegex = Regex(
+        "https?://|www\\.|\\.ir\\b|تخفیف|جایزه|قرعه|جشنواره|لغو ?11|برای لغو|لغو عضویت|ارسال عدد|ثبت ?نام|کد ?(?:رهگیری سفارش|معرف|تخفیف)|" +
+            "سفارش|ارسال رایگان|همراه ?اول|ایرانسل|رایتل|سیم ?کارت|مگابایت|گیگابایت|بسته اینترنت|مکالمه|اعتبار سیم",
+    )
 
     /**
      * @param body the SMS text.
@@ -54,7 +61,7 @@ object SmsParser {
      * @return null when the SMS has no transaction amount (OTP codes, ads, etc.).
      */
     fun parse(body: String, received: JalaliDate = Jalali.today()): ParsedSms? {
-        val text = PersianText.normalize(body).replace('\r', '\n')
+        val text = PersianText.normalize(body).replace('\r', '\n').replace(arabicCommaInNumber, ",")
         if (otpRegex.containsMatchIn(text)) return null
         val usedRanges = mutableListOf<IntRange>()
 
@@ -108,6 +115,8 @@ object SmsParser {
         val factor = if (toman) 10L else 1L
 
         val account = findAccount(text)
+        val bank = Banks.detect(text)
+        if (!looksLikeBankTransaction(text, balance != null, account != null, bank != null, direction != null)) return null
         val (date, time) = findDateTime(text, received)
 
         return ParsedSms(
@@ -115,12 +124,28 @@ object SmsParser {
             amountRial = amount * factor,
             balanceRial = balance?.times(factor),
             accountDigits = account,
-            bankId = Banks.detect(text)?.id,
+            bankId = bank?.id,
             date = date,
             hour = time?.first,
             minute = time?.second,
             description = describe(text, usedRanges),
         )
+    }
+
+    /**
+     * A bank transaction SMS names the account or card and reports either a balance or a direction. Anything
+     * else with a number in it (shop receipts, operator top-ups, ads) is not one.
+     */
+    private fun looksLikeBankTransaction(
+        text: String, hasBalance: Boolean, hasAccount: Boolean, hasBank: Boolean, hasDirection: Boolean,
+    ): Boolean {
+        val notBank = notBankRegex.containsMatchIn(text)
+        return when {
+            hasAccount && hasBalance -> !notBank || hasBank
+            hasAccount && hasDirection -> !notBank
+            hasBalance && hasBank && hasDirection -> !notBank
+            else -> false
+        }
     }
 
     private fun directionFromWords(text: String): Direction? {

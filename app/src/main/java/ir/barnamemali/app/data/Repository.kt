@@ -4,6 +4,7 @@ import androidx.room.withTransaction
 import ir.barnamemali.app.notify.Notifier
 import ir.barnamemali.core.Installments
 import ir.barnamemali.core.Jalali
+import ir.barnamemali.core.PersianText
 import ir.barnamemali.core.JalaliDate
 import ir.barnamemali.core.Money
 import ir.barnamemali.core.Reconciler
@@ -95,14 +96,45 @@ class Repository(
     // ---------- Bank SMS ----------
 
     /** Reads one SMS. Returns true if it was a bank transaction and is now waiting (or was auto-confirmed). */
+    private val personalNumber = Regex("^(\\+?98|0098|0)?9\\d{9}$")
+
+    /** Banks send from short codes or names; a regular mobile number is a person, never a bank. */
+    private fun fromPersonalNumber(sender: String) = personalNumber.matches(PersianText.normalize(sender).filter { it.isDigit() || it == '+' })
+
+    private fun matchAccount(accounts: List<Account>, digits: String?, bankId: String?): Account? =
+        accounts.filter { it.digits != null && it.digits == digits }
+            .let { matches -> matches.firstOrNull { it.bankId == bankId } ?: matches.firstOrNull() }
+            ?: accounts.filter { bankId != null && it.bankId == bankId }.singleOrNull()
+
+    /**
+     * Once the user has defined bank accounts, an SMS that matches none of them and comes from a bank they have
+     * no account with is not theirs to book.
+     */
+    private fun isUsersBank(accounts: List<Account>, bankId: String?): Boolean {
+        val bankAccounts = accounts.filter { !it.archived && (it.type == AccountType.BANK || it.type == AccountType.CARD) }
+        return bankAccounts.isEmpty() || (bankId != null && bankAccounts.any { it.bankId == bankId })
+    }
+
+    /** Runs the current SMS rules over the SMS still waiting, so messages wrongly taken as bank SMS go away. */
+    suspend fun recheckPendingSms() {
+        val accounts = dao.accounts()
+        for (sms in dao.pendingSmsOnce()) {
+            val parsed = SmsParser.parse(sms.body, Jalali.fromMillis(sms.receivedAt))
+            val keep = parsed != null && !fromPersonalNumber(sms.sender) &&
+                (matchAccount(accounts, parsed.accountDigits, parsed.bankId ?: sms.bankId) != null ||
+                    isUsersBank(accounts, parsed.bankId ?: sms.bankId))
+            if (!keep) dao.updateSms(sms.copy(status = SmsStatus.IGNORED))
+        }
+    }
+
     suspend fun ingestSms(sender: String, body: String, receivedAt: Long, notify: Boolean = true): Boolean {
         val received = Jalali.fromMillis(receivedAt)
+        if (fromPersonalNumber(sender)) return false
         val parsed = SmsParser.parse(body, received) ?: return false
         val accounts = dao.accounts()
         val bankId = parsed.bankId ?: Banks.detect(sender)?.id
-        val account = accounts.filter { it.digits != null && it.digits == parsed.accountDigits }
-            .let { matches -> matches.firstOrNull { it.bankId == bankId } ?: matches.firstOrNull() }
-            ?: accounts.filter { bankId != null && it.bankId == bankId }.singleOrNull()
+        val account = matchAccount(accounts, parsed.accountDigits, bankId)
+        if (account == null && !isUsersBank(accounts, bankId)) return false
 
         // A new account created today should not pull in months of older SMS.
         if (account != null && account.balanceKnown && receivedAt < account.createdAt) return false

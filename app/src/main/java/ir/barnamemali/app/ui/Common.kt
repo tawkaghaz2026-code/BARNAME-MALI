@@ -59,6 +59,10 @@ import ir.barnamemali.core.JalaliDate
 import ir.barnamemali.core.Money
 import ir.barnamemali.core.MoneyUnit
 import ir.barnamemali.core.PersianText
+import ir.barnamemali.app.R
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.material3.Typography
 
 val LocalApp = compositionLocalOf<BarnameMaliApp> { error("no app") }
 
@@ -69,6 +73,25 @@ val WarnSoft = Color(0xFFFFF7ED)
 val Danger = Color(0xFFB91C1C)
 val Muted = Color(0xFF5B6661)
 val Ground = Color(0xFFF4F6F3)
+
+val Vazirmatn = FontFamily(
+    Font(R.font.vazirmatn_fd_regular, FontWeight.Normal),
+    Font(R.font.vazirmatn_fd_medium, FontWeight.Medium),
+    Font(R.font.vazirmatn_fd_semibold, FontWeight.SemiBold),
+    Font(R.font.vazirmatn_fd_bold, FontWeight.Bold),
+)
+
+/** Material's type scale with every style switched to Vazirmatn FD (Persian digits). */
+val AppTypography = Typography().let { t ->
+    fun TextStyle.v() = copy(fontFamily = Vazirmatn)
+    Typography(
+        displayLarge = t.displayLarge.v(), displayMedium = t.displayMedium.v(), displaySmall = t.displaySmall.v(),
+        headlineLarge = t.headlineLarge.v(), headlineMedium = t.headlineMedium.v(), headlineSmall = t.headlineSmall.v(),
+        titleLarge = t.titleLarge.v(), titleMedium = t.titleMedium.v(), titleSmall = t.titleSmall.v(),
+        bodyLarge = t.bodyLarge.v(), bodyMedium = t.bodyMedium.v(), bodySmall = t.bodySmall.v(),
+        labelLarge = t.labelLarge.v(), labelMedium = t.labelMedium.v(), labelSmall = t.labelSmall.v(),
+    )
+}
 
 val AppColors = lightColorScheme(
     primary = Brand,

@@ -55,6 +55,7 @@ import ir.barnamemali.app.ui.AccountsScreen
 import ir.barnamemali.app.ui.AddTxnScreen
 import ir.barnamemali.app.ui.AdjustmentsScreen
 import ir.barnamemali.app.ui.AppColors
+import ir.barnamemali.app.ui.AppTypography
 import ir.barnamemali.app.ui.CategoriesScreen
 import ir.barnamemali.app.ui.FamilyScreen
 import ir.barnamemali.app.ui.HomeScreen
@@ -87,7 +88,7 @@ class MainActivity : FragmentActivity() {
 
         setContent {
             CompositionLocalProvider(LocalApp provides app, LocalLayoutDirection provides LayoutDirection.Rtl) {
-                MaterialTheme(colorScheme = AppColors) {
+                MaterialTheme(colorScheme = AppColors, typography = AppTypography) {
                     if (unlocked) AppNav(startRoute) { startRoute = null } else LockScreen { authenticate() }
                 }
             }
